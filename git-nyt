@@ -1,0 +1,45 @@
+#! /bin/sh
+
+org_opts=$@
+command=$1
+
+base='$(git config nyt.base)'
+
+shift
+case ${command} in
+  clear)  
+    git config --unset nyt.base
+    exit 0
+    ;;
+  list)
+    eval "git log --format=%H $base.. $@"
+    exit 0
+    ;;
+  diff)
+    eval "git diff $base $@"
+    exit 0
+    ;;
+  rebase)
+    eval "git rebase -i $base $@"
+    git nyt clear
+    exit 0
+    ;;
+  fixup)
+    eval "git reset --mixed $base; git add .; git commit -a $@"
+    git nyt clear
+    exit 0
+    ;;
+  fixup-part)
+    all=$(git nyt list)
+    list=$(cat -)
+
+    exit 0
+    ;;
+esac
+
+git config nyt.base
+if [ "$?" = "1" ]; then
+    git config nyt.base $(git log -1 --format=%H)
+fi
+
+git $org_opts
