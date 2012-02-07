@@ -31,7 +31,7 @@ case ${command} in
     git nyt clear;;
   fixup-part)
     all=$(git nyt list)
-    list=$(cat -)
+    list=$(cat - | cut -f 1)
     eval git reset --hard $base
     for c in $list; do git cherry-pick $c; done
     git nyt fixup $@
@@ -46,7 +46,10 @@ case ${command} in
 	difffiles=$(diff "$files" "$oldfiles")
 	echo "amend:$difffiles"
 	if [ "$difffiles" = "" ]
-	then git cherry-pick --amend $c 
+	then 
+	    git reset --mixed $c
+	    git add .
+	    git commit --amend -m $(git log --pretty=%s -1 $c)
 	else git cherry-pick $c
 	fi
 	oldfiles=$files
