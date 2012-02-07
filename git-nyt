@@ -21,10 +21,10 @@ shift
 case ${command} in
   clear) git config --unset nyt.base ;;
   base) git config nyt.base $@ ;;
-  list) eval "git log --format=%H $base.. $@ | tail -r" ;;
-  diff) eval "git diff $base $@";;
+  list) eval git log --format=%H $base.. $@ | tail -r ;;
+  diff) eval git diff $base $@;;
   rebase)
-    eval "git rebase -i $base $@"
+    eval git rebase -i $base $@
     git nyt clear;;
   fixup)
     eval "git reset --mixed $base; git add .; git commit -a $@"
@@ -32,11 +32,26 @@ case ${command} in
   fixup-part)
     all=$(git nyt list)
     list=$(cat -)
-    eval "git reset --hard $base"
+    eval git reset --hard $base
     for c in $list; do git cherry-pick $c; done
     git nyt fixup $@
     for c in $(diff "$all" "$list"); do git cherry-pick $c; done
    ;;
+  bleis)
+    all=$(git nyt list)
+    eval git reset --hard $base
+
+    for c in $all; do 
+	files=$(git show --pretty=oneline --name-only $c | sed -ne '2,$p')
+	difffiles=$(diff "$files" "$oldfiles")
+	echo "amend:$difffiles"
+	if [ "$difffiles" = "" ]
+	then git cherry-pick --amend $c 
+	else git cherry-pick $c
+	fi
+	oldfiles=$files
+    done
+    ;;
   *)
     git config nyt.base
     if [ "$?" = "1" ]; then
