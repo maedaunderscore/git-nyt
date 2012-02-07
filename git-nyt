@@ -5,10 +5,23 @@ command=$1
 
 base='$(git config nyt.base)'
 
+apply()
+{
+    eval $(printf $@)
+}
+diff()
+{
+    for x in $1
+    do 
+	if [ "$(eval $(printf 'a=%s;for b in %s;do if [ "$a" = "$b" ]; then echo $a; break; fi; done' $x "$2"))" = "" ] ;then echo $x;fi
+    done
+}
+
 shift
 case ${command} in
   clear) git config --unset nyt.base ;;
-  list) eval "git log --format=%H $base.. $@" ;;
+  base) git config nyt.base $@ ;;
+  list) eval "git log --format=%H $base.. $@ | tail -r" ;;
   diff) eval "git diff $base $@";;
   rebase)
     eval "git rebase -i $base $@"
@@ -19,14 +32,17 @@ case ${command} in
   fixup-part)
     all=$(git nyt list)
     list=$(cat -)
-
-    ;;
+    eval "git reset --hard $base"
+    for c in $list; do git cherry-pick $c; done
+    git nyt fixup $@
+    for c in $(diff "$all" "$list"); do git cherry-pick $c; done
+   ;;
   *)
     git config nyt.base
     if [ "$?" = "1" ]; then
-	git config nyt.base $(git log -1 --format=%H)
+	git nyt base $(git log -1 --format=%H)
     fi
-
+    
     git $org_opts
     ;;
 esac

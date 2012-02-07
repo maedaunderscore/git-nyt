@@ -120,6 +120,14 @@ testFixupPart()
 	git add $i.txt
 	git nyt commit -m "commit:$i"
     done
-    git nyt list | head -n 2 | git nyt fixup-part
+    git nyt list | tail -n 3 | git nyt fixup-part -m 'hoge'
+    assertEquals 'commit:2' $(git log --pretty=%s -1)
+    assertEquals 'commit:1' $(git log --pretty=%s -2| tail -n1)
+    assertEquals 'hoge' $(git log --pretty=%s -3| tail -n1)
+    assertEquals '3.txt
+4.txt
+5.txt' "$(git diff HEAD~2 HEAD~3 --name-only)"
+    assertEquals 'first commit' "$(git log --pretty=%s -4| tail -n1)"
 }
+
 . ../shunit2-2.1.6/src/shunit2
