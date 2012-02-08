@@ -21,7 +21,7 @@ shift
 case ${command} in
   clear) git config --unset nyt.base ;;
   base) git config nyt.base $@ ;;
-  list) eval git log --format=%H $base.. $@ | tail -r ;;
+  list) eval git log --pretty=oneline $base.. $@ | tail -r ;;
   diff) eval git diff $base $@;;
   rebase)
     eval git rebase -i $base $@
