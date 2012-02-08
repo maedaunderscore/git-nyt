@@ -38,25 +38,15 @@ case ${command} in
     for c in $(diff "$all" "$list"); do git cherry-pick $c; done
    ;;
   bleis)
-    all=$(git nyt list)
-    eval git reset --hard $base
-
-    for c in $all; do 
-	files=$(git show --pretty=oneline --name-only $c | sed -ne '2,$p')
-	difffiles=$(diff "$files" "$oldfiles")
-	echo "amend:$difffiles"
-	if [ "$difffiles" = "" ]
-	then 
-	    git reset --mixed $c
-	    git add .
-	    git commit --amend -m $(git log --pretty=%s -1 $c)
-	else git cherry-pick $c
+	files=$(git diff --pretty=oneline --name-only --cached)
+	oldfiles=$(git show --pretty=oneline --name-only HEAD | sed -ne '2,$p')
+	if [ "$(diff "$files" "$oldfiles")" = "" ]
+	then git commit $@
+	else git commit --amend $@
 	fi
-	oldfiles=$files
-    done
     ;;
   *)
-    git config nyt.base
+    git config nyt.base > /dev/null
     if [ "$?" = "1" ]; then
 	git nyt base $(git log -1 --format=%H)
     fi

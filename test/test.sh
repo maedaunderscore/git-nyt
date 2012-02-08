@@ -134,22 +134,16 @@ testBleis()
 {
     echo 1 > 1.txt
     git add 1.txt
-    git nyt commit -m 'commit:1'
+    git nyt bleis -m 'commit:1'
+    assertEquals 1 $(git log --pretty=oneline | wc -l)
     echo 2 > 1.txt
     git add 1.txt
-    git nyt commit -m 'commit:2'
-    git nyt bleis
-    assertEquals 3 $(git log --pretty=oneline | wc -l)
+    git nyt bleis -m 'commit:2'
+    assertEquals 2 $(git log --pretty=oneline | wc -l)
     echo 3 > 2.txt
     git add 2.txt
-    git nyt commit -m 'commit:3'
-    assertEquals 4 $(git log --pretty=oneline | wc -l)
-    echo before
-    git log --pretty=oneline
-    git nyt bleis
-    echo after
-    git log --pretty=oneline
-    assertEquals 3 $(git log --pretty=oneline | wc -l)
+    git nyt bleis -m 'commit:3'
+    assertEquals 2 $(git log --pretty=oneline | wc -l)
 }
 
 . ../shunit2-2.1.6/src/shunit2
