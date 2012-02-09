@@ -1,6 +1,6 @@
 #! /bin/sh
 
-org_opts=$@
+org_opts="$@"
 command=$1
 
 base='$(git config nyt.base)'
@@ -20,29 +20,29 @@ diff()
 shift
 case ${command} in
   clear) git config --unset nyt.base ;;
-  base) git config nyt.base $@ ;;
-  list) eval git log --pretty=oneline $base.. $@ | tail -r ;;
-  diff) eval git diff $base $@;;
+  base) git config nyt.base "$@";;
+  list) eval git log --pretty=oneline $base.. "$@" | tail -r ;;
+  diff) eval git diff $base "$@";;
   rebase)
-    eval git rebase -i $base $@
+    eval git rebase -i $base "$@"
     git nyt clear;;
   fixup)
-    eval "git reset --mixed $base; git add .; git commit -a $@"
+    eval "git reset --mixed $base; git add .; git commit -a \"$@\""
     git nyt clear;;
   fixup-part)
-    all=$(git nyt list)
-    list=$(cat - | cut -f 1)
+    all=$(git nyt list | cut -f 1 -d' ')
+    list=$(cat - | cut -f 1 -d' ')
     eval git reset --hard $base
     for c in $list; do git cherry-pick $c; done
-    git nyt fixup $@
+    git nyt fixup "$@"
     for c in $(diff "$all" "$list"); do git cherry-pick $c; done
    ;;
   bleis)
 	files=$(git diff --pretty=oneline --name-only --cached)
 	oldfiles=$(git show --pretty=oneline --name-only HEAD | sed -ne '2,$p')
 	if [ "$(diff "$files" "$oldfiles")" = "" ]
-	then git commit $@
-	else git commit --amend $@
+	then git commit "$@"
+	else git commit --amend "$@"
 	fi
     ;;
   *)
@@ -51,7 +51,8 @@ case ${command} in
 	git nyt base $(git log -1 --format=%H)
     fi
     
-    git $org_opts
+    git $command "$@"
+    
     ;;
 esac
 
