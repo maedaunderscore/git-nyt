@@ -24,11 +24,9 @@ case ${command} in
   list) eval git log --pretty=oneline $base.. "$@" | tail -r ;;
   diff) eval git diff $base "$@";;
   rebase)
-    eval git rebase -i $base "$@"
-    git nyt clear;;
+    eval git rebase -i $base "$@" && git nyt clear;;
   fixup)
-    eval "git reset --mixed $base; git add .; git commit -a \"$@\""
-    git nyt clear;;
+    eval git reset $base && git add . && git commit -a "$@" && git nyt clear;;
   fixup-part)
     all=$(git nyt list | cut -f 1 -d' ')
     list=$(cat - | cut -f 1 -d' ')

@@ -98,7 +98,7 @@ testFixup()
     done
     git nyt fixup -m 'commit: one'
     assertEquals 2 $(git log --pretty=oneline | wc -l)
-    assertEquals ' commit: one' "$(git log -1 --format=%s)"
+    assertEquals 'commit: one' "$(git log -1 --format=%s)"
 
     for i in {6..10}; do 
 	echo $i > $i.txt
@@ -107,7 +107,7 @@ testFixup()
     done
     git nyt fixup -m 'commit: two'
     assertEquals 3 $(git log --pretty=oneline | wc -l)
-    assertEquals ' commit: two' "$(git log -1 --format=%s)"
+    assertEquals 'commit: two' "$(git log -1 --format=%s)"
 
 }
 

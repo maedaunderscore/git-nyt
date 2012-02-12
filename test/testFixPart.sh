@@ -26,7 +26,7 @@ testFixupPart()
     git nyt list | tail -n 3 | git nyt fixup-part -m 'hoge hoge'
     assertEquals 'commit: 2' "$(git log --pretty=%s -1)"
     assertEquals 'commit: 1' "$(git log --pretty=%s -2| tail -n1)"
-    assertEquals ' hoge hoge' "$(git log --pretty=%s -3| tail -n1)"
+    assertEquals 'hoge hoge' "$(git log --pretty=%s -3| tail -n1)"
     assertEquals '3.txt
 4.txt
 5.txt' "$(git diff HEAD~2 HEAD~3 --name-only)"
@@ -42,7 +42,7 @@ testFixupByFilename()
 	git-now
     done
     git nyt list | grep -e '3.txt$' | git nyt fixup-part -m 'only 3'
-    assertEquals ' only 3' "$(git log --pretty=%s -5| tail -n1)"
+    assertEquals 'only 3' "$(git log --pretty=%s -5| tail -n1)"
     assertEquals '5.txt' "$(git diff HEAD~1 HEAD   --name-only)"
     assertEquals '4.txt' "$(git diff HEAD~2 HEAD~1 --name-only)"
     assertEquals '2.txt' "$(git diff HEAD~3 HEAD~2 --name-only)"
@@ -69,7 +69,7 @@ testFixupByTicket()
     git add .
     git nyt commit -a -m 'refs #2'
     git nyt list | grep 'refs #2' | git nyt fixup-part -m 'refs #2'
-    assertEquals ' refs #2' "$(git log --pretty=%s -3| tail -n1)"
+    assertEquals 'refs #2' "$(git log --pretty=%s -3| tail -n1)"
     assertEquals 'd.txt' "$(git diff HEAD~1 HEAD   --name-only)"
     assertEquals 'a.txt' "$(git diff HEAD~2 HEAD~1 --name-only)"
     assertEquals 'b.txt
