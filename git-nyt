@@ -5,15 +5,19 @@ command=$1
 
 base='$(git config nyt.base)'
 
+encloseArgs()
+{
+    for x in $@; do echo $x; done
+}
 try()
 {
     before=$(git show --format=%H | head -n1)
-
     echo "$1" | while read line;do
 	if [ "$line" != "" ]; then
+	    echo "run : $line"
 	    eval $line
 	    ret=$?
-	    if [ $ret -ne 0 ]; then return $ret; fi
+	    if [ $ret -ne 0 ]; then echo "ZEROOO!!!!!";return $ret; fi
 	fi
     done
 
@@ -41,11 +45,13 @@ case ${command} in
   fixup)
     eval git reset $base && git add . && git commit -a "$@" && git nyt clear;;
   fixup-part)
-    eval 'all=$(git nyt list | cut -f 1 -d" ")
+    all=$(git nyt list | cut -f 1 -d" ")
     list=$(cat - | cut -f 1 -d" ")
+    args=$(encloseArgs "$@")
+    try '
     eval git reset --hard $base
     for c in $list; do git cherry-pick $c; done
-    git nyt fixup "$@"
+    git nyt fixup "$args"
     for c in $(diff "$all" "$list"); do git cherry-pick $c; done'
    ;;
   bleis)

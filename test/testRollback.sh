@@ -66,4 +66,22 @@ echooo hoge
     assertEquals 1 $(git log --pretty=oneline | wc -l)
 }
 
+testRunWithEnvironment()
+{
+    echo $b
+    assertEquals "a.txt" "$(try '
+a=$(ls)
+echo $a
+echo $b')"
+}
+
+testRunWithEval()
+{
+    assertEquals "a.txt
+hoge" "$(try '
+a="echo hoge"
+eval ls
+eval $a')"
+}
+
 . ../shunit2-2.1.6/src/shunit2
