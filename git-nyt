@@ -5,10 +5,23 @@ command=$1
 
 base='$(git config nyt.base)'
 
-apply()
+try()
 {
-    eval $(printf $@)
+    before=$(git show --format=%H | head -n1)
+
+    echo "$1" | while read line;do
+	if [ "$line" != "" ]; then
+	    eval $line
+	    ret=$?
+	    if [ $ret -ne 0 ]; then return $ret; fi
+	fi
+    done
+
+    local ret=$?
+    if [ $ret -ne 0 ]; then git reset --hard $before; fi
+    return $ret
 }
+
 diff()
 {
     for x in $1
@@ -28,12 +41,12 @@ case ${command} in
   fixup)
     eval git reset $base && git add . && git commit -a "$@" && git nyt clear;;
   fixup-part)
-    all=$(git nyt list | cut -f 1 -d' ')
-    list=$(cat - | cut -f 1 -d' ')
+    eval 'all=$(git nyt list | cut -f 1 -d" ")
+    list=$(cat - | cut -f 1 -d" ")
     eval git reset --hard $base
     for c in $list; do git cherry-pick $c; done
     git nyt fixup "$@"
-    for c in $(diff "$all" "$list"); do git cherry-pick $c; done
+    for c in $(diff "$all" "$list"); do git cherry-pick $c; done'
    ;;
   bleis)
 	files=$(git diff --pretty=oneline --name-only --cached)
