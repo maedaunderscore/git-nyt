@@ -6,9 +6,9 @@ setUp()
     cd testunit_work
     export PATH=../..:$PATH
     git init
-    echo a > a.txt
-    git add a.txt
-    git commit -m 'first commit'
+#    echo a > a.txt
+#    git add a.txt
+#    git commit -m 'first commit'
 }
 
 tearDown()
@@ -20,10 +20,13 @@ tearDown()
 test__simple_commit()
 {
     echo b > b.txt
-    git add b.txt
+    git nyt add b.txt
+    assertEquals $? 0
+    assertEquals "" "$(git nyt base)"
     git nyt commit -m 'hoge fuga'
     assertEquals $? 0
     assertEquals 'hoge fuga' "$(git log -1 --format=%s)"
+    assertEquals "" "$(git nyt base)"
 }
 
 test__set_base()
@@ -33,22 +36,11 @@ test__set_base()
     echo b > b.txt
     git add b.txt
     git nyt commit -m 'hoge fuga'
-    assertEquals "$(git log --format=%H -1 HEAD~1)" "$(git config nyt.base)"
+    assertEquals "" "$(git config nyt.base)"
     echo c > b.txt
     git add b.txt
     git nyt commit -m 'foo bar'
-    assertEquals "$(git log --format=%H -1 HEAD~2)" "$(git config nyt.base)"
-}
-
-test__keep_base()
-{
-    echo b > b.txt
-    git add b.txt
-    git nyt commit -m 'hoge hoge'
-    base=$(git config nyt.base)
-    echo c >> b.txt
-    git nyt commit -a -m 'fuga fuga'
-    assertEquals $base "$(git config nyt.base)"
+    assertEquals "" "$(git config nyt.base)"
 }
 
 test__clear_base()
@@ -59,7 +51,7 @@ test__clear_base()
     base=$(git config nyt.base)
     echo c >> b.txt
     git nyt commit -a -m 'fuga'
-    assertEquals $base $(git config nyt.base)
+    assertEquals "$base" "$(git config nyt.base)"
     git nyt clear
     git config nyt.base
     assertEquals $? 1
@@ -85,35 +77,34 @@ test__diff()
 	git add $i.txt
 	git nyt commit -m "commit: $i"
     done
-    assertEquals "1.txt
-2.txt
-3.txt
-4.txt
-5.txt" "$(git nyt diff --name-only)"
+    git nyt diff --name-only
+    assertNotEquals "0" "$?"
 }
 
-test__fixup()
-{
-    for i in $OneToFive; do 
-	echo $i > "file $i.txt"
-	git add "file $i.txt"
-	git nyt commit -m "commit: $i"
-    done
-    git nyt fixup -m 'commit: one'
-    assertEquals 2 $(git log --pretty=oneline | wc -l)
-    assertEquals 'commit: one' "$(git log -1 --format=%s)"
-
-    for i in $SixToTen; do 
-	echo $i > $i.txt
-	git add $i.txt
-	git nyt commit -m "commit: $i"
-    done
-    git nyt fixup -m 'commit: two'
-    assertEquals 3 $(git log --pretty=oneline | wc -l)
-    assertEquals 'commit: two' "$(git log -1 --format=%s)"
-
-}
-
+#test__fixup()
+#{
+#    for i in $OneToFive; do 
+#	echo $i > "file $i.txt"
+#	git add "file $i.txt"
+#	git nyt commit -m "commit: $i"
+#    done
+#    git log --pretty=oneline
+#    git nyt fixup -m 'commit: one'
+#    git log --pretty=oneline
+#    assertEquals 1 $(git log --pretty=oneline | wc -l)
+#    assertEquals 'commit: one' "$(git log -1 --format=%s)"
+#
+#    for i in $SixToTen; do 
+#	echo $i > $i.txt
+#	git add $i.txt
+#	git nyt commit -m "commit: $i"
+#    done
+#    git nyt fixup -m 'commit: two'
+#    assertEquals 2 $(git log --pretty=oneline | wc -l)
+#    assertEquals 'commit: two' "$(git log -1 --format=%s)"
+#
+#}
+#
 test__bleis()
 {
     echo 1 > 1.txt

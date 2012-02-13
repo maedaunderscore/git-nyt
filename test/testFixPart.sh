@@ -89,11 +89,11 @@ test__fixup_stop_when_somthing_is_on_index()
 	git nyt commit -m "commit: $i"
     done
     touch test.txt
-    git nyt list | head -n 2 | git nyt fixup-part -m 'hoge'
+    git nyt list | head -n 5 | git nyt fixup-part -m 'hoge'
     assertEquals 6 $(git log --pretty=oneline | wc -l)
 
     git nyt add test.txt
-    git nyt list | head -n 2 | git nyt fixup-part -m 'fuga'
+    git nyt list | head -n 5 | git nyt fixup-part -m 'fuga'
     assertEquals 6 $(git log --pretty=oneline | wc -l)
 
     git nyt commit -m 'commit: test.txt'

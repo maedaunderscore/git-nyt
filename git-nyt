@@ -23,7 +23,15 @@ stop_if_dirty()
 {
     if [ "$(is_dirty)" = "0" ]; then 
 	git status
-	echo "This command only work during the status is NOT DIRTY"
+	echo "This command only work during the status is NOT DIRTY."
+	exit 1
+    fi
+}
+
+stop_if_no_base()
+{
+    if [ "$(git config nyt.base)" = "" ]; then
+	echo "No base commit is set."
 	exit 1
     fi
 }
@@ -35,17 +43,20 @@ enclose_args()
 
 try()
 {
+    stop_if_dirty
     before=$(git show --format=%H | head -n1)
+    before_base=$(git config nyt.base)
     echo "$1" | while read line;do
-	if [ "$line" != "" ]; then
-	    eval $line
-	    ret=$?
-	    if [ $ret -ne 0 ]; then return $ret; fi
-	fi
+	eval $line
+	ret=$?
+	if [ $ret -ne 0 ]; then return $ret; fi
     done
 
     local ret=$?
-    if [ $ret -ne 0 ]; then git reset --hard $before; fi
+    if [ $ret -ne 0 ]; then 
+	git nyt base $before_base
+	git reset --hard $before
+    fi
     return $ret
 }
 
@@ -59,42 +70,41 @@ diff()
 
 if [ $# -ne 0 ]; then shift; fi
 
-case ${COMMAND} in
+case $COMMAND in
   clear) git config --unset nyt.base ;;
   base) git config nyt.base "$@";;
-  list) eval git log --pretty=oneline $BASE.. "$@" | reverse ;;
-  diff) eval git diff $BASE "$@";;
-  rebase)
-    eval git rebase -i $BASE "$@" && git nyt clear;;
-  fixup)
-    stop_if_dirty
-    eval git reset $BASE && git add . && git commit -a "$@" && git nyt clear;;
+  list) 
+    base=$(git config nyt.base)
+    if [ "$base" != "" ]; then base="$base.."; fi
+    git log --pretty=oneline $base "$@" | reverse ;;
+  diff) stop_if_no_base && eval git diff $BASE "$@";;
+  rebase) stop_if_no_base && eval git rebase -i $BASE "$@" && git nyt clear;;
+  fixup) 
+    stop_if_no_base 
+    args=$(enclose_args "$@")
+    try '
+      eval git reset $BASE
+      git add .
+      git commit -a "$args"
+      git nyt clear';;
   fixup-part)
-    stop_if_dirty
     all=$(git nyt list | cut -f 1 -d" ")
     list=$(cat - | cut -f 1 -d" ")
     args=$(enclose_args "$@")
     try '
-    eval git reset --hard $BASE
-    for c in $list; do git cherry-pick $c; done
-    git nyt fixup "$args"
-    for c in $(diff "$all" "$list"); do git cherry-pick $c; done'
-   ;;
+      eval git reset --hard $BASE
+      for c in $list; do git cherry-pick $c; done
+      git nyt fixup "$args"
+      for c in $(diff "$all" "$list"); do git cherry-pick $c; done';;
   bleis)
-	files=$(git diff --pretty=oneline --name-only --cached)
-	oldfiles=$(git show --pretty=oneline --name-only HEAD | sed -ne '2,$p')
-	if [ "$(diff "$files" "$oldfiles")" = "" ]
-	then git commit "$@"
-	else git commit --amend "$@"
-	fi
-    ;;
+    files=$(git diff --pretty=oneline --name-only --cached)
+    oldfiles=$(git show --pretty=oneline --name-only HEAD | sed -ne '2,$p')
+    if [ "$(diff "$files" "$oldfiles")" = "" ]
+    then git commit "$@"
+    else git commit --amend "$@"
+    fi;;
   *)
     git config nyt.base > /dev/null
-    if [ "$?" = "1" ]; then
-	git nyt base $(git log -1 --format=%H)
-    fi
-    
-    git $COMMAND "$@"
-    
-    ;;
+    if [ $? -ne 0 ]; then git nyt base "$(git log -1 --format=%H 2> /dev/null)"; fi
+    git $COMMAND "$@";;
 esac
