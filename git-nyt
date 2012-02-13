@@ -13,6 +13,13 @@ reverse()
     fi
 }
 
+is_dirty()
+{
+    if [ "$(git clean -dn; git diff HEAD)" = "" ]; then echo 1; return 1
+    else echo 0; return 0
+    fi
+}
+
 encloseArgs()
 {
     for x in $@; do echo $x; done
