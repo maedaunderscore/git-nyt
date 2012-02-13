@@ -19,10 +19,20 @@ is_dirty()
     fi
 }
 
+stop_if_dirty()
+{
+    if [ "$(is_dirty)" = "0" ]; then 
+	git status
+	echo "This command only work during the status is NOT DIRTY"
+	exit 1
+    fi
+}
+
 enclose_args()
 {
     for x in $@; do echo $x; done
 }
+
 try()
 {
     before=$(git show --format=%H | head -n1)
@@ -57,8 +67,10 @@ case ${COMMAND} in
   rebase)
     eval git rebase -i $BASE "$@" && git nyt clear;;
   fixup)
+    stop_if_dirty
     eval git reset $BASE && git add . && git commit -a "$@" && git nyt clear;;
   fixup-part)
+    stop_if_dirty
     all=$(git nyt list | cut -f 1 -d" ")
     list=$(cat - | cut -f 1 -d" ")
     args=$(enclose_args "$@")
@@ -86,4 +98,3 @@ case ${COMMAND} in
     
     ;;
 esac
-

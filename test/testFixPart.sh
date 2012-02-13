@@ -81,4 +81,24 @@ e.txt' "$(git diff HEAD~3 HEAD~2 --name-only)"
     assertEquals 4 $(git log --pretty=oneline | wc -l)
 }
 
+test__fixup_stop_when_somthing_is_on_index()
+{
+    for i in $OneToFive; do 
+	echo $i > $i.txt
+	git add $i.txt
+	git nyt commit -m "commit: $i"
+    done
+    touch test.txt
+    git nyt list | head -n 2 | git nyt fixup-part -m 'hoge'
+    assertEquals 6 $(git log --pretty=oneline | wc -l)
+
+    git nyt add test.txt
+    git nyt list | head -n 2 | git nyt fixup-part -m 'fuga'
+    assertEquals 6 $(git log --pretty=oneline | wc -l)
+
+    git nyt commit -m 'commit: test.txt'
+    git nyt list | head -n 5 | git nyt fixup-part -m 'foo'
+    assertEquals 3 $(git log --pretty=oneline | wc -l)
+}
+
 . ../shunit2-2.1.6/src/shunit2

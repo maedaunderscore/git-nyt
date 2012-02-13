@@ -30,5 +30,4 @@ test__is_dirty()
     assertNotEquals "0" "$(is_dirty)"
 }
 
-
 . ../shunit2-2.1.6/src/shunit2
