@@ -5,6 +5,14 @@ command=$1
 
 base='$(git config nyt.base)'
 
+reverse()
+{
+    if [ "$(which tac)" = "" ]
+    then tail -r $@
+    else tac $@
+    fi
+}
+
 encloseArgs()
 {
     for x in $@; do echo $x; done
@@ -14,10 +22,9 @@ try()
     before=$(git show --format=%H | head -n1)
     echo "$1" | while read line;do
 	if [ "$line" != "" ]; then
-	    echo "run : $line"
 	    eval $line
 	    ret=$?
-	    if [ $ret -ne 0 ]; then echo "ZEROOO!!!!!";return $ret; fi
+	    if [ $ret -ne 0 ]; then return $ret; fi
 	fi
     done
 
@@ -34,11 +41,12 @@ diff()
     done
 }
 
-shift
+if [ $# -ne 0 ]; then shift; fi
+
 case ${command} in
   clear) git config --unset nyt.base ;;
   base) git config nyt.base "$@";;
-  list) eval git log --pretty=oneline $base.. "$@" | tail -r ;;
+  list) eval git log --pretty=oneline $base.. "$@" | reverse ;;
   diff) eval git diff $base "$@";;
   rebase)
     eval git rebase -i $base "$@" && git nyt clear;;

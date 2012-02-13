@@ -9,7 +9,7 @@ setUp()
     echo a > a.txt
     git add a.txt
     git commit -m 'first commit'
-    . git-nyt > /dev/null
+    . git-nyt show > /dev/null
 }
 
 tearDown()

@@ -65,9 +65,12 @@ testClearBase()
     assertEquals $? 1
 }
 
+OneToFive="1 2 3 4 5"
+SixToTen="6 7 8 9 10"
+
 testList()
 {
-    for i in {1..5}; do 
+    for i in $OneToFive; do 
 	echo $i > $i.txt
 	git add $i.txt
 	git nyt commit -m "commit: $i"
@@ -77,7 +80,7 @@ testList()
 
 testDiff()
 {
-    for i in {1..5}; do 
+    for i in $OneToFive; do 
 	echo $i > $i.txt
 	git add $i.txt
 	git nyt commit -m "commit: $i"
@@ -91,7 +94,7 @@ testDiff()
 
 testFixup()
 {
-    for i in {1..5}; do 
+    for i in $OneToFive; do 
 	echo $i > $i.txt
 	git add $i.txt
 	git nyt commit -m "commit: $i"
@@ -100,7 +103,7 @@ testFixup()
     assertEquals 2 $(git log --pretty=oneline | wc -l)
     assertEquals 'commit: one' "$(git log -1 --format=%s)"
 
-    for i in {6..10}; do 
+    for i in $SixToTen; do 
 	echo $i > $i.txt
 	git add $i.txt
 	git nyt commit -m "commit: $i"

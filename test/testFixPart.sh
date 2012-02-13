@@ -16,9 +16,11 @@ tearDown()
     cd ..
     rm -rf testunit_work
 }
+OneToFive="1 2 3 4 5"
+
 testFixupPart()
 {
-    for i in {1..5}; do 
+    for i in $OneToFive; do 
 	echo $i > $i.txt
 	git add $i.txt
 	git nyt commit -m "commit: $i"
@@ -36,7 +38,7 @@ testFixupPart()
 alias git-now='git nyt commit -m "[from now] $(date) $(echo $(git diff --pretty=oneline --name-only --cached))"'
 testFixupByFilename()
 {
-    for i in {1..5}; do 
+    for i in $OneToFive; do 
 	echo $i > $i.txt
 	git add $i.txt
 	git-now
