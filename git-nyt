@@ -60,6 +60,18 @@ try()
     return $ret
 }
 
+set_base()
+{
+    git config nyt.base > /dev/null
+    if [ $? -ne 0 ]; then 
+	base="$(git log -1 --format=%H 2> /dev/null)"
+	if [ "$base" = "" ]; then
+	    echo 'Need first commit.'
+	    exit 1
+	else git nyt base $base
+	fi
+    fi
+}
 diff()
 {
     for x in $1
@@ -104,7 +116,6 @@ case $COMMAND in
     else git commit --amend "$@"
     fi;;
   *)
-    git config nyt.base > /dev/null
-    if [ $? -ne 0 ]; then git nyt base "$(git log -1 --format=%H 2> /dev/null)"; fi
+    set_base
     git $COMMAND "$@";;
 esac
