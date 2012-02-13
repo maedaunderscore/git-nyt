@@ -17,7 +17,7 @@ tearDown()
     rm -rf testunit_work
 }
 
-testSimpleCommit()
+test__simple_commit()
 {
     echo b > b.txt
     git add b.txt
@@ -26,7 +26,7 @@ testSimpleCommit()
     assertEquals 'hoge fuga' "$(git log -1 --format=%s)"
 }
 
-testSetBase()
+test__set_base()
 {
     git config nyt.base
     assertEquals 1 $?
@@ -40,7 +40,7 @@ testSetBase()
     assertEquals "$(git log --format=%H -1 HEAD~2)" "$(git config nyt.base)"
 }
 
-testKeepBase()
+test__keep_base()
 {
     echo b > b.txt
     git add b.txt
@@ -51,7 +51,7 @@ testKeepBase()
     assertEquals $base "$(git config nyt.base)"
 }
 
-testClearBase()
+test__clear_base()
 {
     echo b > b.txt
     git add b.txt
@@ -68,7 +68,7 @@ testClearBase()
 OneToFive="1 2 3 4 5"
 SixToTen="6 7 8 9 10"
 
-testList()
+test__list()
 {
     for i in $OneToFive; do 
 	echo $i > $i.txt
@@ -78,7 +78,7 @@ testList()
     assertEquals 5 $(git nyt list | wc -l)
 }
 
-testDiff()
+test__diff()
 {
     for i in $OneToFive; do 
 	echo $i > $i.txt
@@ -92,7 +92,7 @@ testDiff()
 5.txt" "$(git nyt diff --name-only)"
 }
 
-testFixup()
+test__fixup()
 {
     for i in $OneToFive; do 
 	echo $i > $i.txt
@@ -114,7 +114,7 @@ testFixup()
 
 }
 
-testBleis()
+test__bleis()
 {
     echo 1 > 1.txt
     git add 1.txt

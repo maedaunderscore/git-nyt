@@ -1,9 +1,8 @@
 #! /bin/sh
 
-org_opts="$@"
-command=$1
+COMMAND=$1
 
-base='$(git config nyt.base)'
+BASE='$(git config nyt.base)'
 
 reverse()
 {
@@ -20,7 +19,7 @@ is_dirty()
     fi
 }
 
-encloseArgs()
+enclose_args()
 {
     for x in $@; do echo $x; done
 }
@@ -50,21 +49,21 @@ diff()
 
 if [ $# -ne 0 ]; then shift; fi
 
-case ${command} in
+case ${COMMAND} in
   clear) git config --unset nyt.base ;;
   base) git config nyt.base "$@";;
-  list) eval git log --pretty=oneline $base.. "$@" | reverse ;;
-  diff) eval git diff $base "$@";;
+  list) eval git log --pretty=oneline $BASE.. "$@" | reverse ;;
+  diff) eval git diff $BASE "$@";;
   rebase)
-    eval git rebase -i $base "$@" && git nyt clear;;
+    eval git rebase -i $BASE "$@" && git nyt clear;;
   fixup)
-    eval git reset $base && git add . && git commit -a "$@" && git nyt clear;;
+    eval git reset $BASE && git add . && git commit -a "$@" && git nyt clear;;
   fixup-part)
     all=$(git nyt list | cut -f 1 -d" ")
     list=$(cat - | cut -f 1 -d" ")
-    args=$(encloseArgs "$@")
+    args=$(enclose_args "$@")
     try '
-    eval git reset --hard $base
+    eval git reset --hard $BASE
     for c in $list; do git cherry-pick $c; done
     git nyt fixup "$args"
     for c in $(diff "$all" "$list"); do git cherry-pick $c; done'
@@ -83,7 +82,7 @@ case ${command} in
 	git nyt base $(git log -1 --format=%H)
     fi
     
-    git $command "$@"
+    git $COMMAND "$@"
     
     ;;
 esac

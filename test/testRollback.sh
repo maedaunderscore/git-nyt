@@ -20,14 +20,14 @@ tearDown()
 
 
 
-testRunOneLineWithSuccess()
+test__run_one_line_with_success()
 {
     assertEquals "ok" $(try "echo ok")
     try "echo ok"
     assertEquals "0" "$?"
 }
 
-testRunLinesWithSuccess()
+test__run_multiple_lines_with_success()
 {
     assertEquals "ok
 ok2
@@ -42,7 +42,7 @@ echo ok3'
     assertEquals "0" "$?"
 }
 
-testRunLinesWithError()
+test__run_multiple_lines_with_error()
 {
     assertEquals "" "$(try '
 echo ok
@@ -54,7 +54,7 @@ echo ok3'
     assertNotEquals "0" "$?"
 }
 
-testRollback()
+test_rollback()
 {
     try '
 echo b > b.txt
@@ -66,7 +66,7 @@ echooo hoge
     assertEquals 1 $(git log --pretty=oneline | wc -l)
 }
 
-testRunWithEnvironment()
+test__run_with_environment()
 {
     echo $b
     assertEquals "a.txt" "$(try '
@@ -75,7 +75,7 @@ echo $a
 echo $b')"
 }
 
-testRunWithEval()
+test__run_with_eval()
 {
     assertEquals "a.txt
 hoge" "$(try '

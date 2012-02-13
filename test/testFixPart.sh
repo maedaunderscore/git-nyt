@@ -18,7 +18,7 @@ tearDown()
 }
 OneToFive="1 2 3 4 5"
 
-testFixupPart()
+test__fixup_part()
 {
     for i in $OneToFive; do 
 	echo $i > $i.txt
@@ -36,7 +36,8 @@ testFixupPart()
 }
 
 alias git-now='git nyt commit -m "[from now] $(date) $(echo $(git diff --pretty=oneline --name-only --cached))"'
-testFixupByFilename()
+
+test__fixup_by_filename()
 {
     for i in $OneToFive; do 
 	echo $i > $i.txt
@@ -53,7 +54,7 @@ testFixupByFilename()
     assertEquals 'first commit' "$(git log --pretty=%s -6| tail -n1)"
 }
 
-testFixupByTicket()
+test__fixup_by_ticket()
 {
     echo a >> a.txt
     git add .
