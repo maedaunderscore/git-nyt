@@ -4,6 +4,41 @@ COMMAND=$1
 
 BASE='$(git config nyt.base)'
 
+main()
+{
+  case $COMMAND in
+    clear) git config --unset nyt.base ;;
+    base) git config nyt.base "$@";;
+    list) 
+      base=$(git config nyt.base)
+      if [ "$base" != "" ]; then base="$base.."; fi
+      git log --pretty=oneline $base "$@" | reverse ;;
+    diff) stop_if_no_base && eval git diff $BASE "$@";;
+    rebase) stop_if_no_base && eval git rebase -i $BASE "$@" && git nyt clear;;
+    fixup) git nyt list | git nyt fixup-part $@;;
+    fixup-part)
+#      stop_if_no_base 
+      all=$(git nyt list | cut -f 1 -d" ")
+      list=$(cat - | cut -f 1 -d" ")
+      args=$(enclose_args "$@")
+      try '
+	eval git reset --hard $BASE
+        for c in $list; do git cherry-pick -n $c; done
+        git commit "$args"
+        git nyt clear
+        for c in $(diff "$all" "$list"); do git nyt cherry-pick $c; done';;
+    bleis)
+      files=$(git diff --pretty=oneline --name-only --cached)
+      oldfiles=$(git show --pretty=oneline --name-only HEAD | sed -ne '2,$p')
+      if [ "$(diff "$files" "$oldfiles")" = "" ]
+      then git commit "$@"
+      else git commit --amend "$@"
+      fi;;
+    *)
+      set_base
+      git $COMMAND "$@";;
+  esac
+}
 reverse()
 {
     if [ "$(which tac)" = "" ]
@@ -65,11 +100,12 @@ set_base()
     git config nyt.base > /dev/null
     if [ $? -ne 0 ]; then 
 	base="$(git log -1 --format=%H 2> /dev/null)"
-	if [ "$base" = "" ]; then
-	    echo 'Need first commit.'
-	    exit 1
-	else git nyt base $base
-	fi
+#	if [ "$base" = "" ]; then
+#	    echo 'Need first commit.'
+#	    exit 1
+#	else 
+#	fi
+	git nyt base "$base"
     fi
 }
 diff()
@@ -82,35 +118,4 @@ diff()
 
 if [ $# -ne 0 ]; then shift; fi
 
-case $COMMAND in
-  clear) git config --unset nyt.base ;;
-  base) git config nyt.base "$@";;
-  list) 
-    base=$(git config nyt.base)
-    if [ "$base" != "" ]; then base="$base.."; fi
-    git log --pretty=oneline $base "$@" | reverse ;;
-  diff) stop_if_no_base && eval git diff $BASE "$@";;
-  rebase) stop_if_no_base && eval git rebase -i $BASE "$@" && git nyt clear;;
-  fixup) git nyt list | git nyt fixup-part $@;;
-  fixup-part)
-    stop_if_no_base 
-    all=$(git nyt list | cut -f 1 -d" ")
-    list=$(cat - | cut -f 1 -d" ")
-    args=$(enclose_args "$@")
-    try '
-      eval git reset --hard $BASE
-      for c in $list; do git cherry-pick -n $c; done
-      git commit "$args"
-      git nyt clear
-      for c in $(diff "$all" "$list"); do git nyt cherry-pick $c; done';;
-  bleis)
-    files=$(git diff --pretty=oneline --name-only --cached)
-    oldfiles=$(git show --pretty=oneline --name-only HEAD | sed -ne '2,$p')
-    if [ "$(diff "$files" "$oldfiles")" = "" ]
-    then git commit "$@"
-    else git commit --amend "$@"
-    fi;;
-  *)
-    set_base
-    git $COMMAND "$@";;
-esac
+main "$@"
