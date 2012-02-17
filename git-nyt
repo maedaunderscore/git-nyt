@@ -1,8 +1,5 @@
 #! /bin/sh
-
 COMMAND=$1
-
-BASE='$(git config nyt.base)'
 
 main()
 {
@@ -20,6 +17,7 @@ main()
       all=$(git nyt list | cut -f 1 -d" ")
       list=$(cat - | cut -f 1 -d" ")
       args=$(enclose_args "$@")
+      stop_if_dirty
       try '
 	reset_to_base
         for c in $list; do git cherry-pick -n $c; done
@@ -38,6 +36,9 @@ main()
       git $COMMAND "$@";;
   esac
 }
+
+BASE='$(git config nyt.base)'
+
 reverse()
 {
     if [ "$(which tac)" = "" ]
@@ -77,7 +78,6 @@ enclose_args()
 
 try()
 {
-    stop_if_dirty
     before=$(git show --format=%H | head -n1)
     before_base=$(git config nyt.base)
     echo "$1" | while read line;do
@@ -98,13 +98,7 @@ set_base()
 {
     git config nyt.base > /dev/null
     if [ $? -ne 0 ]; then 
-	base="$(git log -1 --format=%H 2> /dev/null)"
-#	if [ "$base" = "" ]; then
-#	    echo 'Need first commit.'
-#	    exit 1
-#	else 
-#	fi
-	git nyt base "$base"
+	git nyt base "$(git log -1 --format=%H 2> /dev/null)"
     fi
 }
 diff()
@@ -120,17 +114,21 @@ reset_to_base()
     base=$(git config nyt.base)
     if [ "$base" = "" ] 
     then 
+	make_first_commit
 	reset_first_commit
     else 
 	git reset --hard $base
     fi
 }
 
-reset_first_commit()
+make_first_commit()
 {
     gitDir="$(git rev-parse --show-toplevel)/.git"
     mkdir -p $gitDir/objects/4b
     echo -n -e \\x78\\x01\\x2b\\x29\\x4a\\x4d\\x55\\x30\\x60\\x00\\x00\\x0a\\x2c\\x02\\x01 > $gitDir/objects/4b/825dc642cb6eb9a060e54bf8d69288fbee4904
+}
+reset_first_commit()
+{
     git reset --hard $(echo 'start commit' | git commit-tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904)
 }
 if [ $# -ne 0 ]; then shift; fi
