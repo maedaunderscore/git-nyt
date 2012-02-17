@@ -91,10 +91,38 @@ test__fixup_part()
     assertEquals 'commit: 2' "$(git log --pretty=%s -1)"
     assertEquals 'commit: 1' "$(git log --pretty=%s -2| tail -n1)"
     assertEquals 'hoge hoge' "$(git log --pretty=%s -3| tail -n1)"
+    assertEquals 'start commit' "$(git log --pretty=%s -4| tail -n1)"
     assertEquals '3.txt
 4.txt
 5.txt' "$(git diff HEAD~2 HEAD~3 --name-only)"
 }
+
+test__fixup_part_with_first_commit()
+{
+
+    for i in $OneToFive; do 
+	echo $i > $i.txt
+	git add $i.txt
+	git nyt commit -m "commit: $i"
+    done
+    git nyt list | tail -n 3 | git nyt fixup-part -m 'hoge hoge'
+    assertEquals 'commit: 2' "$(git log --pretty=%s -1)"
+    assertEquals 'commit: 1' "$(git log --pretty=%s -2| tail -n1)"
+    assertEquals 'hoge hoge' "$(git log --pretty=%s -3| tail -n1)"
+    assertEquals 'start commit' "$(git log --pretty=%s -4| tail -n1)"
+    assertEquals '3.txt
+4.txt
+5.txt' "$(git diff HEAD~2 HEAD~3 --name-only)"
+    git config nyt.base ""
+    git nyt list | tail -n 2 | git nyt fixup-part -m 'fuga fuga'
+    assertEquals 'hoge hoge' "$(git log --pretty=%s -1)"
+    assertEquals 'fuga fuga' "$(git log --pretty=%s -2| tail -n1)"
+    assertEquals 'start commit' "$(git log --pretty=%s -3| tail -n1)"
+    assertEquals '1.txt
+2.txt' "$(git diff HEAD~1 HEAD~2 --name-only)"
+    
+}
+
 
 #test__bleis()
 #{

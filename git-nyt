@@ -17,12 +17,11 @@ main()
     rebase) stop_if_no_base && eval git rebase -i $BASE "$@" && git nyt clear;;
     fixup) git nyt list | git nyt fixup-part $@;;
     fixup-part)
-#      stop_if_no_base 
       all=$(git nyt list | cut -f 1 -d" ")
       list=$(cat - | cut -f 1 -d" ")
       args=$(enclose_args "$@")
       try '
-	eval git reset --hard $BASE
+	reset_to_base
         for c in $list; do git cherry-pick -n $c; done
         git commit "$args"
         git nyt clear
@@ -116,6 +115,24 @@ diff()
     done
 }
 
+reset_to_base()
+{
+    base=$(git config nyt.base)
+    if [ "$base" = "" ] 
+    then 
+	reset_first_commit
+    else 
+	git reset --hard $base
+    fi
+}
+
+reset_first_commit()
+{
+    gitDir="$(git rev-parse --show-toplevel)/.git"
+    mkdir -p $gitDir/objects/4b
+    echo -n -e \\x78\\x01\\x2b\\x29\\x4a\\x4d\\x55\\x30\\x60\\x00\\x00\\x0a\\x2c\\x02\\x01 > $gitDir/objects/4b/825dc642cb6eb9a060e54bf8d69288fbee4904
+    git reset --hard $(echo 'start commit' | git commit-tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904)
+}
 if [ $# -ne 0 ]; then shift; fi
 
 main "$@"
